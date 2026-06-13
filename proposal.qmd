@@ -1,8 +1,8 @@
 ---
 title: "Proposal title"
 subtitle: "Proposal"
-author: "Aiden Insall"
-  - name: "My team of one"
+author:
+  - name: "Aiden Insall"
     affiliations:
       - name: "School of Information, University of Arizona"
 description: "Project description"
@@ -37,13 +37,13 @@ The dataset I am using is a synthetic operational dataset for a hypothetical Com
 
 I load it like this:
 
-``` R
+``` r
 center <- readxl::read_excel("MyExcelFile/INFO579_Week8_Project_MyBusinessData_Final.xlsx") 
 ```
 
 To inspect its structure:
 
-``` R
+``` r
 glimpse(center) 
 ```
 
@@ -104,7 +104,7 @@ Steps in R:
 
 1.  Extract time-of-day from the schedule string:
 
-``` R
+``` r
 center <- center |>   
     mutate(time_of_day = case_when(     
       str_detect(Schedule, "AM") & as.numeric(str_extract(Schedule, "\\d+")) < 12 ~ "Morning",
@@ -115,7 +115,7 @@ center <- center |>
 
 2.  Join classes with enrollment to count participants:
 
-``` R
+``` r
 class_enrollment <- enrollment |>   
     group_by(ClassID) |>   
     summarize(total_enrollment = n()) 
@@ -123,7 +123,7 @@ class_enrollment <- enrollment |>
 
 3.  Merge with class information:
 
-``` R
+``` r
 class_summary <- classes |>
     left_join(class_enrollment, by = "ClassID") |>  
     left_join(center |> select(ClassID, time_of_day), by = "ClassID")
@@ -142,7 +142,7 @@ Steps in R:
 
 1.  Summarize equipment condition by class:
 
-    ``` R
+    ``` r
     equipment_summary <- equipment |>   
         group_by(ClassID, Condition) |>   
         summarize(count = n()) 
@@ -150,7 +150,7 @@ Steps in R:
 
 2.  Join with class names:
 
-    ``` R
+    ``` r
     equipment_class <- equipment_summary |>
         left_join(classes |> select(ClassID, ClassName), by = "ClassID")
     ```
