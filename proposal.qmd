@@ -63,7 +63,9 @@ Variables include:
 
 - RoomID, RoomName, Capacity
 
-- EquipmentID, EquipmentName, Condition, ClassID EnrollmentID, ParticipantID, ClassID
+- EquipmentID, EquipmentName, Condition,
+
+- ClassID EnrollmentID, ParticipantID, ClassID
 
 Why I chose this dataset:
 
