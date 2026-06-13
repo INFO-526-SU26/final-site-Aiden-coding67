@@ -1,8 +1,8 @@
 ---
 title: "Proposal title"
 subtitle: "Proposal"
-author: 
-  - name: "Team Name"
+author: "Aiden Insall"
+  - name: "My team of one"
     affiliations:
       - name: "School of Information, University of Arizona"
 description: "Project description"
@@ -31,14 +31,130 @@ library(tidyverse)
 #| message: false
 ```
 
-A brief description of your dataset including its provenance, dimensions, etc. as well as the reason why you chose this dataset.
+A brief description of the dataset including its provenance, dimensions, etc. as well as the reason why you chose this dataset (This includes ideally, loading the data, and using inline code for some of this information).
 
-Make sure to load the data and use inline code for some of this information.
+The dataset I am using is a synthetic operational dataset for a hypothetical Community Learning and Support Center. I created it myself for a previous project, and it represents the day‑to‑day entities and activities of a small educational nonprofit. The dataset tracks staff, classes, participants, rooms, equipment, and enrollments.
+
+I load it like this:
+
+``` R
+center <- readxl::read_excel("MyExcelFile/INFO579_Week8_Project_MyBusinessData_Final.xlsx") 
+```
+
+To inspect its structure:
+
+``` R
+glimpse(center) 
+```
+
+Dimensions (based on the Excel file):
+
+Rows: \~20-30 rows across the combined tabs
+
+Columns: \~10-12 variables depending on the tab
+
+Variables include:
+
+- StaffID, FirstName, LastName, Role, HireDate
+
+- ClassID, ClassName, Schedule, StaffID , RoomID
+
+- ParticipantID, ParticipantFirstName , ParticipantLastName , Email
+
+- RoomID, RoomName, Capacity
+
+- EquipmentID, EquipmentName, Condition, ClassID EnrollmentID, ParticipantID, ClassID
+
+Why I chose this dataset:
+
+- It has clear, well‑defined entities (staff, classes, rooms, equipment, participants).
+
+- It naturally forms a relational structure, which is ideal for multi‑variable visualization.
+
+- It avoids sensitive or regulated data.
+
+- It is small, clean, and easy to analyze.
+
+- It aligns with my interest in structured systems and operational modeling.
+
+- It was readily available since I created it for a previous project.
 
 ## Questions
 
-The two questions you want to answer.
+I will answer the following two questions:
+
+1.  Which classes have the highest enrollment, and how does enrollment vary by time of day?
+2.  Is there a relationship between equipment condition and the classes that use that equipment?
+
+These questions allow me to use multiple variables and produce multi‑variable visualizations.
+
+All data is synthetic and created by me for the purpose of designing a functional relational dataset for the organization. It is not scraped or downloaded. Instead, it is entirely fictional but operationally realistic.
 
 ## Analysis plan
 
--   A plan for answering each of the questions including the variables involved, variables to be created (if any), external data to be merged in (if any).
+A plan for answering each of the questions including the variables involved, variables to be created (if any), external data to be merged in (if any).
+
+Question 1: Class Popularity and time-of-day patterns
+
+Goal: Identify which classes attract the most participants and whether certain times (morning, afternoon, evening) correlate with higher attendance.
+
+Some variables involved include: ClassID, ClassName, Schedule, EnrollmentID, ParticipantID
+
+Steps in R:
+
+1.  Extract time-of-day from the schedule string:
+
+``` R
+center <- center |>   
+    mutate(time_of_day = case_when(     
+      str_detect(Schedule, "AM") & as.numeric(str_extract(Schedule, "\\d+")) < 12 ~ "Morning",
+      str_detect(Schedule, "PM") & as.numeric(str_extract(Schedule, "\\d+")) < 5 ~ "Afternoon",
+      TRUE ~ "Evening"
+    ))
+```
+
+2.  Join classes with enrollment to count participants:
+
+``` R
+class_enrollment <- enrollment |>   
+    group_by(ClassID) |>   
+    summarize(total_enrollment = n()) 
+```
+
+3.  Merge with class information:
+
+``` R
+class_summary <- classes |>
+    left_join(class_enrollment, by = "ClassID") |>  
+    left_join(center |> select(ClassID, time_of_day), by = "ClassID")
+```
+
+4.  Visualize enrollment by class and time of day.
+5.  Interpret which classes and time slots are most popular. There is no need for any external data
+
+Question 2: Equipment condition vs. class usage
+
+Goal: Determine whether classes that rely on certain equipment types tend to have equipment in better or worse condition.
+
+Some variables involved include: EquipmentID, EquipmentName, Condition, ClassID, ClassName
+
+Steps in R:
+
+1.  Summarize equipment condition by class:
+
+    ``` R
+    equipment_summary <- equipment |>   
+        group_by(ClassID, Condition) |>   
+        summarize(count = n()) 
+    ```
+
+2.  Join with class names:
+
+    ``` R
+    equipment_class <- equipment_summary |>
+        left_join(classes |> select(ClassID, ClassName), by = "ClassID")
+    ```
+
+3.  Visualize equipment condition counts per class.
+
+4.  Interpret whether certain classes rely on equipment that is in a more worn condition or a better condition.
